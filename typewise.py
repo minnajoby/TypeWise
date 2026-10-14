@@ -10,8 +10,8 @@ hands = mp_hands.Hands(
 )
 
 video = cv2.VideoCapture(0)
-previous_x = None
-previous_y = None
+tipids = [4, 8, 12, 16, 20]
+previous_positions = {}
 while True:
     suc,img = video.read()
     conv_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -24,26 +24,26 @@ while True:
                 cy = lm.y
                 lmlst.append([id, cx, cy])
             if len(lmlst) == 21:
-                    # Index finger tip = landmark 8
-                    cx = lmlst[8][1]
-                    cy = lmlst[8][2]
-                    # First frame: no previous position
-                    if previous_x is not None and previous_y is not None:
+                for tipid in tipids:
+                    cx = lmlst[tipid][1]
+                    cy = lmlst[tipid][2]
+                    if tipid in previous_positions:
+                        px,py=previous_positions[tipid]
                          # Calculate movement distance
-                        distance = ((cx - previous_x)**2 + (cy - previous_y)**2)**0.5
+                        distance = ((cx - px)**2 + (cy - py)**2)**0.5
                         cv2.putText(
                             img,
-                            'Movement: ' + str(round(distance, 4)),
-                            (30, 400),
+                            str(tipid) + str(round(distance, 4)),
+                            (20, 40 + tipid * 3),
                             cv2.FONT_HERSHEY_COMPLEX,
-                            1,
+                            0.6,
                             (0, 255, 0),
                             1
                         )
-                    # Store current position for next frame
-                    previous_x = cx
-                    previous_y = cy
+                    previous_positions[tipid]=(cx,cy)
             mp_draw.draw_landmarks(img,hand_landmarks,mp_hands.HAND_CONNECTIONS)
+    else:
+        previous_positions.clear()
     cv2.imshow("TypeWise - Hand Tracking", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
