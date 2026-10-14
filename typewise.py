@@ -5,20 +5,27 @@ mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
 
 hands = mp_hands.Hands(
-    max_num_hands=2,
+    max_num_hands=1,
     min_detection_confidence=0.5
 )
 
 video = cv2.VideoCapture(0)
 tipids = [4, 8, 12, 16, 20]
 previous_positions = {}
+total_movement = {
+    4: 0,
+    8: 0,
+    12: 0,
+    16: 0,
+    20: 0
+}
 while True:
     suc,img = video.read()
     conv_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     result = hands.process(conv_img)
-    lmlst = []
     if result.multi_hand_landmarks:
         for hand_landmarks in result.multi_hand_landmarks:
+            lmlst = []
             for id, lm in enumerate(hand_landmarks.landmark):
                 cx = lm.x
                 cy = lm.y
@@ -29,12 +36,14 @@ while True:
                     cy = lmlst[tipid][2]
                     if tipid in previous_positions:
                         px,py=previous_positions[tipid]
-                         # Calculate movement distance
+                        # Calculate movement distance
                         distance = ((cx - px)**2 + (cy - py)**2)**0.5
+                        total_movement[tipid] += distance
                         cv2.putText(
                             img,
-                            str(tipid) + str(round(distance, 4)),
-                            (20, 40 + tipid * 3),
+                            'Finger ' + str(tipid) + ': ' +
+                            str(round(total_movement[tipid], 3)),
+                            (20, 40 + tipids.index(tipid) * 35),
                             cv2.FONT_HERSHEY_COMPLEX,
                             0.6,
                             (0, 255, 0),
