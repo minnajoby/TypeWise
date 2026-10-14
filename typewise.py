@@ -29,18 +29,19 @@ fingernames = {
     20: "Pinky"
 }
 key_count = 0
+typed_chars = 0
 start_time = time.time()
 
 def on_press(key):
-    global key_count
+    global key_count, typed_chars
 
-    # Count typing keys, not modifier keys
     if hasattr(key, 'char') and key.char is not None:
         key_count += 1
+        typed_chars += 1
 
     elif key == keyboard.Key.space:
         key_count += 1
-
+        typed_chars += 1
 listener = keyboard.Listener(on_press=on_press)
 listener.start()
 
@@ -79,7 +80,10 @@ while True:
     else:
         previous_positions.clear()
     elapsed_time = time.time() - start_time
-
+    if elapsed_time > 0:
+        wpm = (typed_chars / 5) / (elapsed_time / 60)
+    else:
+        wpm = 0
     cv2.putText(
         img,
         'Key Presses: ' + str(key_count),
@@ -96,6 +100,15 @@ while True:
         cv2.FONT_HERSHEY_COMPLEX,
         0.7,
         (255, 0, 0),
+        2
+    )
+    cv2.putText(
+        img,
+        'WPM: ' + str(round(wpm, 1)),
+        (20, 300),
+        cv2.FONT_HERSHEY_COMPLEX,
+        0.7,
+        (0, 255, 255),
         2
     )
     cv2.imshow("TypeWise - Hand Tracking", img)
