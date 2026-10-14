@@ -1,5 +1,7 @@
 import cv2
 import mediapipe as mp
+import time
+from pynput import keyboard
 
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
@@ -26,6 +28,22 @@ fingernames = {
     16: "Ring",
     20: "Pinky"
 }
+key_count = 0
+start_time = time.time()
+
+def on_press(key):
+    global key_count
+
+    # Count typing keys, not modifier keys
+    if hasattr(key, 'char') and key.char is not None:
+        key_count += 1
+
+    elif key == keyboard.Key.space:
+        key_count += 1
+
+listener = keyboard.Listener(on_press=on_press)
+listener.start()
+
 while True:
     suc,img = video.read()
     conv_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -60,8 +78,29 @@ while True:
             mp_draw.draw_landmarks(img,hand_landmarks,mp_hands.HAND_CONNECTIONS)
     else:
         previous_positions.clear()
+    elapsed_time = time.time() - start_time
+
+    cv2.putText(
+        img,
+        'Key Presses: ' + str(key_count),
+        (20, 230),
+        cv2.FONT_HERSHEY_COMPLEX,
+        0.7,
+        (255, 0, 0),
+        2
+    )
+    cv2.putText(
+        img,
+        'Time: ' + str(round(elapsed_time, 1)) + ' sec',
+        (20, 265),
+        cv2.FONT_HERSHEY_COMPLEX,
+        0.7,
+        (255, 0, 0),
+        2
+    )
     cv2.imshow("TypeWise - Hand Tracking", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+listener.stop()
 video.release()
 cv2.destroyAllWindows()
