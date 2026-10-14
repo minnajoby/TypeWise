@@ -19,6 +19,13 @@ total_movement = {
     16: 0,
     20: 0
 }
+fingernames = {
+    4: "Thumb",
+    8: "Index",
+    12: "Middle",
+    16: "Ring",
+    20: "Pinky"
+}
 while True:
     suc,img = video.read()
     conv_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -41,7 +48,7 @@ while True:
                         total_movement[tipid] += distance
                         cv2.putText(
                             img,
-                            'Finger ' + str(tipid) + ': ' +
+                            fingernames[tipid] + ': ' +
                             str(round(total_movement[tipid], 3)),
                             (20, 40 + tipids.index(tipid) * 35),
                             cv2.FONT_HERSHEY_COMPLEX,
